@@ -1,0 +1,13 @@
+aiohttp>=3.8.0
+pydantic>=2.0.0
+attrs>=23.0.0
+pytest>=7.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.0.0
+pre-commit>=3.0.0
+ipykernel
+sphinx>=7.0.0
+sphinx-rtd-theme>=1.2.0

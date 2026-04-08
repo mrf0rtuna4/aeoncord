@@ -259,8 +259,8 @@ class Role:
 
 @dataclass
 class DomainEvent(ABC):
-    event_id: UUID = field(default_factory=uuid4)
-    occurred_at: datetime = field(default_factory=datetime.now)
+    event_id: UUID = field(default_factory=uuid4, init=False)
+    occurred_at: datetime = field(default_factory=datetime.now, init=False)
 
 
 @dataclass

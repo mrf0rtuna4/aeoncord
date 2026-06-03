@@ -24,7 +24,7 @@ class MessageCreateEvent:
 
     _message: Message
 
-    async def reply(self, content: str) -> Message:
+    async def reply(self, content: str) -> Message | None:
         pass
 
     async def react(self, emoji: str) -> None:
@@ -33,7 +33,7 @@ class MessageCreateEvent:
     async def delete(self) -> None:
         pass
 
-    async def edit(self, new_content: str) -> Message:
+    async def edit(self, new_content: str) -> Message | None:
         pass
 
 

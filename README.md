@@ -16,6 +16,15 @@ source venv/bin/activate  # or `venv\Scripts\activate`
 pip install -e ".[dev]"
 ```
 
+## Code Checking 
+
+```
+ruff check .
+ruff format --check .
+mypy .
+pytest
+```
+
 ## License
 
 ARR © 2026 mr_fortuna

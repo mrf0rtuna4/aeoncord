@@ -88,7 +88,6 @@ class GuildRepository(ABC):
 
 
 class RoleRepository(ABC):
-
     @abstractmethod
     async def get_by_id(self, role_id: RoleId) -> Optional[Role]:
         pass

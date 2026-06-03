@@ -5,16 +5,23 @@ Discord REST API Adapter.
 from __future__ import annotations
 
 import json
-from typing import Any, Optional
 from datetime import datetime
+from typing import Any, Optional
 
 import aiohttp
 
 from aeoncord.core.domain.models import (
-    Message, MessageId, User, UserId, ChannelId, Channel, Guild, GuildId,
-    Role, RoleId, MessageType, Embed
+    ChannelId,
+    Embed,
+    GuildId,
+    Message,
+    MessageId,
+    MessageType,
+    RoleId,
+    User,
+    UserId,
 )
-from aeoncord.core.ports import HTTPClient, EntityMapper, MessageRepository
+from aeoncord.core.ports import EntityMapper, HTTPClient, MessageRepository, UserRepository
 
 
 class DiscordHTTPClient(HTTPClient):
@@ -44,8 +51,7 @@ class DiscordHTTPClient(HTTPClient):
     async def get(self, endpoint: str, **kwargs: Any) -> dict | list:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
-            raise RuntimeError(
-                "HTTPClient not initialized. Use async context manager.")
+            raise RuntimeError("HTTPClient not initialized. Use async context manager.")
 
         async with self.session.get(url, headers=self.headers, **kwargs) as resp:
             await self._handle_response(resp)
@@ -54,14 +60,10 @@ class DiscordHTTPClient(HTTPClient):
     async def post(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
-            raise RuntimeError(
-                "HTTPClient not initialized. Use async context manager.")
+            raise RuntimeError("HTTPClient not initialized. Use async context manager.")
 
         async with self.session.post(
-            url,
-            headers=self.headers,
-            data=json.dumps(data) if data else None,
-            **kwargs
+            url, headers=self.headers, data=json.dumps(data) if data else None, **kwargs
         ) as resp:
             await self._handle_response(resp)
             return await resp.json()
@@ -69,14 +71,10 @@ class DiscordHTTPClient(HTTPClient):
     async def patch(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
-            raise RuntimeError(
-                "HTTPClient not initialized. Use async context manager.")
+            raise RuntimeError("HTTPClient not initialized. Use async context manager.")
 
         async with self.session.patch(
-            url,
-            headers=self.headers,
-            data=json.dumps(data) if data else None,
-            **kwargs
+            url, headers=self.headers, data=json.dumps(data) if data else None, **kwargs
         ) as resp:
             await self._handle_response(resp)
             return await resp.json()
@@ -84,8 +82,7 @@ class DiscordHTTPClient(HTTPClient):
     async def delete(self, endpoint: str, **kwargs: Any) -> None:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
-            raise RuntimeError(
-                "HTTPClient not initialized. Use async context manager.")
+            raise RuntimeError("HTTPClient not initialized. Use async context manager.")
 
         async with self.session.delete(url, headers=self.headers, **kwargs) as resp:
             await self._handle_response(resp)
@@ -93,14 +90,10 @@ class DiscordHTTPClient(HTTPClient):
     async def put(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
-            raise RuntimeError(
-                "HTTPClient not initialized. Use async context manager.")
+            raise RuntimeError("HTTPClient not initialized. Use async context manager.")
 
         async with self.session.put(
-            url,
-            headers=self.headers,
-            data=json.dumps(data) if data else None,
-            **kwargs
+            url, headers=self.headers, data=json.dumps(data) if data else None, **kwargs
         ) as resp:
             await self._handle_response(resp)
             return await resp.json()
@@ -119,25 +112,26 @@ class DiscordHTTPClient(HTTPClient):
 
 
 class MessageMapper(EntityMapper):
-
     async def to_domain(self, user_repo: UserRepository, data: dict) -> Message:
         author_data = data.get("author", {})
         author = await user_repo.get_by_id(UserId(int(author_data["id"])))
 
         embeds = []
         for embed_data in data.get("embeds", []):
-            embeds.append(Embed(
-                title=embed_data.get("title"),
-                description=embed_data.get("description"),
-                url=embed_data.get("url"),
-                color=embed_data.get("color"),
-                image_url=embed_data.get("image", {}).get("url"),
-                thumbnail_url=embed_data.get("thumbnail", {}).get("url"),
-                author_name=embed_data.get("author", {}).get("name"),
-                author_icon_url=embed_data.get("author", {}).get("icon_url"),
-                footer_text=embed_data.get("footer", {}).get("text"),
-                footer_icon_url=embed_data.get("footer", {}).get("icon_url"),
-            ))
+            embeds.append(
+                Embed(
+                    title=embed_data.get("title"),
+                    description=embed_data.get("description"),
+                    url=embed_data.get("url"),
+                    color=embed_data.get("color"),
+                    image_url=embed_data.get("image", {}).get("url"),
+                    thumbnail_url=embed_data.get("thumbnail", {}).get("url"),
+                    author_name=embed_data.get("author", {}).get("name"),
+                    author_icon_url=embed_data.get("author", {}).get("icon_url"),
+                    footer_text=embed_data.get("footer", {}).get("text"),
+                    footer_icon_url=embed_data.get("footer", {}).get("icon_url"),
+                )
+            )
 
         mentions = [UserId(int(m["id"])) for m in data.get("mentions", [])]
         mention_roles = [RoleId(int(r)) for r in data.get("mention_roles", [])]
@@ -151,16 +145,14 @@ class MessageMapper(EntityMapper):
         return Message(
             id=MessageId(int(data["id"])),
             channel_id=ChannelId(int(data["channel_id"])),
-            guild_id=GuildId(int(data["guild_id"])) if data.get(
-                "guild_id") else None,
+            guild_id=GuildId(int(data["guild_id"])) if data.get("guild_id") else None,
             author_id=UserId(int(author_data["id"])),
             author=author,
             content=data.get("content", ""),
-            created_at=datetime.fromisoformat(
-                data["timestamp"].replace("Z", "+00:00")),
-            edited_at=datetime.fromisoformat(
-                data["edited_timestamp"].replace("Z", "+00:00"))
-            if data.get("edited_timestamp") else None,
+            created_at=datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00")),
+            edited_at=datetime.fromisoformat(data["edited_timestamp"].replace("Z", "+00:00"))
+            if data.get("edited_timestamp")
+            else None,
             is_pinned=data.get("pinned", False),
             is_tts=data.get("tts", False),
             message_type=MessageType(data.get("type", "default")),
@@ -183,9 +175,11 @@ class MessageMapper(EntityMapper):
                     "image": {"url": e.image_url} if e.image_url else None,
                     "thumbnail": {"url": e.thumbnail_url} if e.thumbnail_url else None,
                     "author": {"name": e.author_name, "icon_url": e.author_icon_url}
-                    if e.author_name else None,
+                    if e.author_name
+                    else None,
                     "footer": {"text": e.footer_text, "icon_url": e.footer_icon_url}
-                    if e.footer_text else None,
+                    if e.footer_text
+                    else None,
                 }
                 for e in message.embeds
             ],

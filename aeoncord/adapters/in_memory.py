@@ -4,17 +4,30 @@ In-Memory Adapters.
 
 from __future__ import annotations
 
-from typing import Optional, Callable, Any
-from datetime import datetime
 import logging
+from typing import Any, Callable, Optional
 
 from aeoncord.core.domain.models import (
-    Message, MessageId, User, UserId, ChannelId, Channel, Guild, GuildId,
-    Role, RoleId, DomainEvent
+    Channel,
+    ChannelId,
+    DomainEvent,
+    Guild,
+    GuildId,
+    Message,
+    MessageId,
+    Role,
+    RoleId,
+    User,
+    UserId,
 )
 from aeoncord.core.ports import (
-    MessageRepository, UserRepository, ChannelRepository,
-    GuildRepository, RoleRepository, EventBus, Logger
+    ChannelRepository,
+    EventBus,
+    GuildRepository,
+    Logger,
+    MessageRepository,
+    RoleRepository,
+    UserRepository,
 )
 
 
@@ -32,8 +45,7 @@ class InMemoryMessageRepository(MessageRepository):
         before: Optional[MessageId] = None,
     ) -> list[Message]:
         messages = [
-            m for m in self._messages.values()
-            if m.channel_id == channel_id and not m.is_deleted()
+            m for m in self._messages.values() if m.channel_id == channel_id and not m.is_deleted()
         ]
         messages.sort(key=lambda m: m.created_at, reverse=True)
         return messages[:limit]

@@ -4,20 +4,29 @@ Discord Gateway (WebSocket) Adapter.
 
 from __future__ import annotations
 
-import json
 import asyncio
+import json
 import zlib
-from typing import Any, Optional, Callable
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Any, Callable, Optional
 
 import aiohttp
 
 from aeoncord.core.domain.models import (
-    DomainEvent, MessageCreated, MessageEdited, MessageDeleted,
-    ReactionAdded, ReactionRemoved, UserOnline, UserOffline,
-    MessageId, UserId, ChannelId, GuildId
+    ChannelId,
+    DomainEvent,
+    GuildId,
+    MessageCreated,
+    MessageDeleted,
+    MessageEdited,
+    MessageId,
+    ReactionAdded,
+    ReactionRemoved,
+    UserId,
+    UserOffline,
+    UserOnline,
 )
-from aeoncord.core.ports import GatewayConnection, EventHandler
+from aeoncord.core.ports import EventHandler, GatewayConnection
 
 
 class Opcode:
@@ -213,7 +222,9 @@ class DiscordGateway(GatewayConnection, EventHandler):
         elif event_type == GatewayEvent.MESSAGE_UPDATE:
             event = MessageEdited(
                 message_id=MessageId(int(payload["id"])),
-                editor_id=UserId(int(payload["author"]["id"])) if payload.get("author") else UserId(0),
+                editor_id=UserId(int(payload["author"]["id"]))
+                if payload.get("author")
+                else UserId(0),
                 new_content=payload.get("content", ""),
                 edited_at=datetime.fromisoformat(
                     payload["edited_timestamp"].replace("Z", "+00:00")

@@ -8,7 +8,8 @@ import asyncio
 import json
 import zlib
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Optional
+from collections.abc import Awaitable, Callable
 
 import aiohttp
 
@@ -27,7 +28,9 @@ from aeoncord.core.domain.models import (
     UserOnline,
 )
 from aeoncord.core.ports import EventHandler, GatewayConnection
+from aeoncord.adapters.helpers import Helpers
 
+EventCallback = Callable[[DomainEvent], Awaitable[None]]
 
 class Opcode:
     DISPATCH = 0
@@ -99,10 +102,11 @@ class DiscordGateway(GatewayConnection, EventHandler):
         self._session_id: Optional[str] = None
         self._sequence: int = 0
         self._heartbeat_interval: int = 0
-        self._heartbeat_task: Optional[asyncio.Task] = None
-        self._event_handlers: dict[str, list[Callable]] = {}
+        self._heartbeat_task: asyncio.Task[None] | None = None
+        self._event_handlers: dict[str, list[EventCallback]] = {}
         self._decompress_buffer = zlib.decompressobj()
         self._should_reconnect = True
+        self.helper = Helpers()
 
     async def connect(self) -> None:
         if self._connected:
@@ -126,7 +130,11 @@ class DiscordGateway(GatewayConnection, EventHandler):
         self._connected = False
 
     async def is_connected(self) -> bool:
-        return self._connected and self.ws and not self.ws.closed
+        return (
+            self._connected
+            and self.ws is not None
+            and not self.ws.closed
+        )
 
     async def send_heartbeat(self) -> None:
         if not self.ws:
@@ -141,7 +149,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
     async def on(
         self,
         event_type: type[DomainEvent],
-        handler: Callable[[DomainEvent], Any],
+        handler: EventCallback,
     ) -> None:
         event_name = event_type.__name__
         if event_name not in self._event_handlers:
@@ -186,10 +194,10 @@ class DiscordGateway(GatewayConnection, EventHandler):
                 break
 
     async def _handle_payload(self, data: dict[str, Any]) -> None:
-        opcode = data.get("op")
-        sequence = data.get("s")
-        event_type = data.get("t")
-        payload = data.get("d")
+        opcode: int | None = data.get("op")
+        sequence: int | None = data.get("s")
+        event_type: str | None = data.get("t")
+        payload: object = data.get("d")
 
         if sequence:
             self._sequence = sequence
@@ -206,22 +214,26 @@ class DiscordGateway(GatewayConnection, EventHandler):
             await self.disconnect()
 
         elif opcode == Opcode.DISPATCH:
-            await self._handle_event(event_type, payload)
+            if (
+                event_type is not None
+                and isinstance(payload, dict)
+            ):
+                await self._handle_event(event_type, payload)
 
-    async def _handle_event(self, event_type: str, payload: dict) -> None:
+    async def _handle_event(self, event_type: str, payload: dict[str, object]) -> None:
         if event_type == GatewayEvent.MESSAGE_CREATE:
             event = MessageCreated(
-                message_id=MessageId(int(payload["id"])),
+                message_id = MessageId(int(self.helper.as_str(payload, "id"))),
                 author_id=UserId(int(payload["author"]["id"])),
-                channel_id=ChannelId(int(payload["channel_id"])),
-                guild_id=GuildId(int(payload["guild_id"])) if payload.get("guild_id") else None,
+                channel_id=ChannelId(int(self.helper.as_str(payload, "channel_id"))),
+                guild_id=GuildId(int(self.helper.as_str(payload, "guild_id"))) if payload.get("guild_id") else None,
                 content=payload.get("content", ""),
             )
             await self.dispatch(event)
 
         elif event_type == GatewayEvent.MESSAGE_UPDATE:
             event = MessageEdited(
-                message_id=MessageId(int(payload["id"])),
+                message_id=MessageId(int(self.helper.as_str(payload, "id"))),
                 editor_id=UserId(int(payload["author"]["id"]))
                 if payload.get("author")
                 else UserId(0),

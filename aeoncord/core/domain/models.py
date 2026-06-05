@@ -6,20 +6,42 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
 
-@dataclass(frozen=True)
+def _empty_embed_list() -> list["Embed"]:
+    return []
+
+
+def _empty_user_id_list() -> list["UserId"]:
+    return []
+
+
+def _empty_role_id_list() -> list["RoleId"]:
+    return []
+
+
+def _empty_attachment_list() -> list[str]:
+    return []
+
+
+def _empty_reactions_map() -> dict[str, int]:
+    return {}
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+@dataclass(frozen=True, slots=True)
 class ValueObject(ABC):
     """Base class for all value objects."""
 
-    pass
 
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UserId(ValueObject):
     value: int
 
@@ -30,7 +52,7 @@ class UserId(ValueObject):
         return self.value
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class MessageId(ValueObject):
     value: int
 
@@ -38,7 +60,7 @@ class MessageId(ValueObject):
         return str(self.value)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ChannelId(ValueObject):
     value: int
 
@@ -46,7 +68,7 @@ class ChannelId(ValueObject):
         return str(self.value)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GuildId(ValueObject):
     value: int
 
@@ -54,23 +76,26 @@ class GuildId(ValueObject):
         return str(self.value)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RoleId(ValueObject):
     value: int
 
+    def __str__(self) -> str:
+        return str(self.value)
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class Snowflake(ValueObject):
     value: int
 
     def to_timestamp(self) -> datetime:
-        """Extract Unix timestamp from snowflake (milliseconds since 2015-01-01)."""
-        discord_epoch = 1420070400000
-        timestamp_ms = (self.value >> 22) + discord_epoch
-        return datetime.fromtimestamp(timestamp_ms / 1000)
+        """Convert Discord snowflake to UTC datetime."""
+        discord_epoch_ms = 1420070400000
+        timestamp_ms = (self.value >> 22) + discord_epoch_ms
+        return datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Mention(ValueObject):
     user_id: Optional[UserId] = None
     role_id: Optional[RoleId] = None
@@ -78,7 +103,10 @@ class Mention(ValueObject):
     guild_id: Optional[GuildId] = None
 
     def is_valid(self) -> bool:
-        return any([self.user_id, self.role_id, self.channel_id, self.guild_id])
+        return any(
+            value is not None
+            for value in (self.user_id, self.role_id, self.channel_id, self.guild_id)
+        )
 
 
 class MessageType(str, Enum):
@@ -108,7 +136,7 @@ class MessageType(str, Enum):
     AUTO_MODERATION_ACTION = "auto_moderation_action"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Embed(ValueObject):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -125,7 +153,7 @@ class Embed(ValueObject):
         return bool(self.title or self.description)
 
 
-@dataclass
+@dataclass(slots=True)
 class User:
     id: UserId
     username: str
@@ -136,17 +164,19 @@ class User:
     verified: bool
     email: Optional[str]
     mfa_enabled: bool
-    premium_type: int  # 0 = None, 1 = Nitro Classic, 2 = Nitro
+    premium_type: int  # 0 = None, 1 = Nitro Classic, 2 = Nitro.
     public_flags: int
 
+    @property
     def display_name(self) -> str:
-        return f"{self.username}"
+        return self.username
 
-    def is_official_bot(self) -> bool:
+    @property
+    def is_system_bot(self) -> bool:
         return self.is_bot and self.is_system
 
 
-@dataclass
+@dataclass(slots=True)
 class Message:
     id: MessageId
     channel_id: ChannelId
@@ -159,12 +189,12 @@ class Message:
     is_pinned: bool
     is_tts: bool
     message_type: MessageType
-    embeds: list[Embed] = field(default_factory=list)
-    mentions: list[UserId] = field(default_factory=list)
-    mention_roles: list[RoleId] = field(default_factory=list)
-    attachments: list[str] = field(default_factory=list)  # URLs
-    reactions: dict[str, int] = field(default_factory=dict)  # emoji -> count
-    _is_deleted: bool = field(default=False, init=False)
+    embeds: list[Embed] = field(default_factory=_empty_embed_list)
+    mentions: list[UserId] = field(default_factory=_empty_user_id_list)
+    mention_roles: list[RoleId] = field(default_factory=_empty_role_id_list)
+    attachments: list[str] = field(default_factory=_empty_attachment_list)
+    reactions: dict[str, int] = field(default_factory=_empty_reactions_map)
+    _is_deleted: bool = field(default=False, init=False, repr=False)
 
     def can_delete(self, requester_id: UserId, is_admin: bool = False) -> bool:
         if self._is_deleted:
@@ -193,22 +223,22 @@ class Message:
         self.reactions[emoji] = self.reactions.get(emoji, 0) + 1
 
     def remove_reaction(self, emoji: str) -> None:
-        if emoji in self.reactions:
-            self.reactions[emoji] -= 1
-            if self.reactions[emoji] <= 0:
-                del self.reactions[emoji]
+        count = self.reactions.get(emoji)
+        if count is None:
+            return
+        if count <= 1:
+            del self.reactions[emoji]
+        else:
+            self.reactions[emoji] = count - 1
 
     def content_length(self) -> int:
         return len(self.content)
 
     def is_empty(self) -> bool:
-        has_text = bool(self.content.strip())
-        has_embeds = bool(self.embeds)
-        has_attachments = bool(self.attachments)
-        return not (has_text or has_embeds or has_attachments)
+        return not (self.content.strip() or self.embeds or self.attachments)
 
 
-@dataclass
+@dataclass(slots=True)
 class Channel:
     """Represents a Discord channel."""
 
@@ -226,7 +256,7 @@ class Channel:
         return self.guild_id is None
 
 
-@dataclass
+@dataclass(slots=True)
 class Guild:
     """Represents a Discord guild."""
 
@@ -242,7 +272,7 @@ class Guild:
         return self.member_count
 
 
-@dataclass
+@dataclass(slots=True)
 class Role:
     """Represents a Discord role within a guild."""
 
@@ -251,19 +281,19 @@ class Role:
     name: str
     color: int
     position: int
-    permissions: int  # Bitfield
+    permissions: int
     is_hoisted: bool
     is_managed: bool
     is_mentionable: bool
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class DomainEvent(ABC):
     event_id: UUID = field(default_factory=uuid4, init=False)
-    occurred_at: datetime = field(default_factory=datetime.now, init=False)
+    occurred_at: datetime = field(default_factory=_utc_now, init=False)
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class MessageCreated(DomainEvent):
     message_id: MessageId
     author_id: UserId
@@ -272,7 +302,7 @@ class MessageCreated(DomainEvent):
     content: str = ""
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class MessageEdited(DomainEvent):
     message_id: MessageId
     editor_id: UserId
@@ -280,34 +310,34 @@ class MessageEdited(DomainEvent):
     new_content: str = ""
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class MessageDeleted(DomainEvent):
     message_id: MessageId
     channel_id: ChannelId
     deleter_id: Optional[UserId] = None
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class ReactionAdded(DomainEvent):
     message_id: MessageId
     user_id: UserId
     emoji: str = ""
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class ReactionRemoved(DomainEvent):
     message_id: MessageId
     user_id: UserId
     emoji: str = ""
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class UserOnline(DomainEvent):
     user_id: UserId
     timestamp: datetime
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class UserOffline(DomainEvent):
     user_id: UserId
     timestamp: datetime

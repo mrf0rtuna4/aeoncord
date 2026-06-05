@@ -162,14 +162,14 @@ class SimpleLogger(Logger):
     def __init__(self, name: str = "aeoncord"):
         self.logger = logging.getLogger(name)
 
-    def debug(self, message: str, **kwargs: any) -> None:
+    def debug(self, message: str, **kwargs: Any) -> None:
         self.logger.debug(message, extra=kwargs)
 
-    def info(self, message: str, **kwargs: any) -> None:
+    def info(self, message: str, **kwargs: Any) -> None:
         self.logger.info(message, extra=kwargs)
 
-    def warning(self, message: str, **kwargs: any) -> None:
+    def warning(self, message: str, **kwargs: Any) -> None:
         self.logger.warning(message, extra=kwargs)
 
-    def error(self, message: str, **kwargs: any) -> None:
+    def error(self, message: str, **kwargs: Any) -> None:
         self.logger.error(message, extra=kwargs)

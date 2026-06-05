@@ -135,7 +135,7 @@ class DiscordClient:
 
     def on(self, event_type: Type[Any]) -> Callable:
 
-        def decorator(func: Callable) -> Callable:
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             if event_type not in self._event_handlers:
                 self._event_handlers[event_type] = []
             self._event_handlers[event_type].append(func)

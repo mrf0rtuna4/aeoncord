@@ -197,10 +197,13 @@ class DiscordGateway(GatewayConnection, EventHandler):
         opcode: int | None = data.get("op")
         sequence: int | None = data.get("s")
         event_type: str | None = data.get("t")
-        payload: object = data.get("d")
+        payload: dict[Any, Any] | None = data.get("d")
 
         if sequence:
             self._sequence = sequence
+
+        if payload is None:
+            return
 
         if opcode == Opcode.HELLO:
             self._heartbeat_interval = payload["heartbeat_interval"]
@@ -216,11 +219,10 @@ class DiscordGateway(GatewayConnection, EventHandler):
         elif opcode == Opcode.DISPATCH:
             if (
                 event_type is not None
-                and isinstance(payload, dict)
             ):
                 await self._handle_event(event_type, payload)
 
-    async def _handle_event(self, event_type: str, payload: dict[str, object]) -> None:
+    async def _handle_event(self, event_type: str, payload: dict[str, Any]) -> None:
         if event_type == GatewayEvent.MESSAGE_CREATE:
             event = MessageCreated(
                 message_id = MessageId(int(self.helper.as_str(payload, "id"))),
@@ -281,7 +283,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
             await self.dispatch(event)
 
     async def _identify(self) -> None:
-        payload = {
+        payload: dict[str, Any] = {
             "op": Opcode.IDENTIFY,
             "d": {
                 "token": self.token,
@@ -293,7 +295,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
                 },
             },
         }
-        await self.ws.send_json(payload)
+        await self.ws.send_json(payload) # pyright: ignore[reportOptionalMemberAccess]
 
     async def _heartbeat_loop(self) -> None:
         while self._should_reconnect:

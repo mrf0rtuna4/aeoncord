@@ -44,11 +44,11 @@ class DiscordHTTPClient(HTTPClient):
         self.session = aiohttp.ClientSession()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self.session:
             await self.session.close()
 
-    async def get(self, endpoint: str, **kwargs: Any) -> dict | list:
+    async def get(self, endpoint: str, **kwargs: Any) -> dict[str, Any] | list[Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -57,7 +57,7 @@ class DiscordHTTPClient(HTTPClient):
             await self._handle_response(resp)
             return await resp.json()
 
-    async def post(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def post(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -68,7 +68,7 @@ class DiscordHTTPClient(HTTPClient):
             await self._handle_response(resp)
             return await resp.json()
 
-    async def patch(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def patch(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -87,7 +87,7 @@ class DiscordHTTPClient(HTTPClient):
         async with self.session.delete(url, headers=self.headers, **kwargs) as resp:
             await self._handle_response(resp)
 
-    async def put(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def put(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -112,7 +112,7 @@ class DiscordHTTPClient(HTTPClient):
 
 
 class MessageMapper(EntityMapper):
-    async def to_domain(self, user_repo: UserRepository, data: dict) -> Message:
+    async def to_domain(self, user_repo: UserRepository, data: dict[str, Any]) -> Message:
         author_data = data.get("author", {})
         author = await user_repo.get_by_id(UserId(int(author_data["id"])))
 
@@ -163,7 +163,7 @@ class MessageMapper(EntityMapper):
             reactions=reactions,
         )
 
-    def from_domain(self, message: Message) -> dict:
+    def from_domain(self, message: Message) -> dict[str, Any]:
         return {
             "content": message.content,
             "embeds": [
@@ -226,11 +226,10 @@ class DiscordRESTMessageRepository(MessageRepository):
 class UserMapper(EntityMapper):
     """map discord user"""
 
-    def to_domain(self, data: dict) -> User:
+    def to_domain(self, data: dict[str, Any]) -> User:
         return User(
             id=UserId(int(data["id"])),
             username=data["username"],
-            discriminator=data.get("discriminator", "0000"),
             avatar_hash=data.get("avatar"),
             is_bot=data.get("bot", False),
             is_system=data.get("system", False),
@@ -242,11 +241,10 @@ class UserMapper(EntityMapper):
             public_flags=data.get("public_flags", 0),
         )
 
-    def from_domain(self, user: User) -> dict:
+    def from_domain(self, user: User) -> dict[str, Any]:
         return {
             "id": str(user.id.value),
             "username": user.username,
-            "discriminator": user.discriminator,
             "avatar": user.avatar_hash,
             "bot": user.is_bot,
             "system": user.is_system,

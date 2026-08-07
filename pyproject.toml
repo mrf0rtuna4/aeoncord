@@ -148,7 +148,7 @@ reportUnusedVariable = true
 
 exclude = [
     "**/__pycache__",
-    "tests",
+    "tests", "**/node_modules", "**/.*", ".venv",
 ]
 
 [tool.pytest.ini_options]

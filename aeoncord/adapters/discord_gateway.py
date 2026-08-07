@@ -7,12 +7,13 @@ from __future__ import annotations
 import asyncio
 import json
 import zlib
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Any, Optional
-from collections.abc import Awaitable, Callable
 
 import aiohttp
 
+from aeoncord.adapters.helpers import Helpers
 from aeoncord.core.domain.models import (
     ChannelId,
     DomainEvent,
@@ -28,9 +29,9 @@ from aeoncord.core.domain.models import (
     UserOnline,
 )
 from aeoncord.core.ports import EventHandler, GatewayConnection
-from aeoncord.adapters.helpers import Helpers
 
 EventCallback = Callable[[DomainEvent], Awaitable[None]]
+
 
 class Opcode:
     DISPATCH = 0
@@ -130,11 +131,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
         self._connected = False
 
     async def is_connected(self) -> bool:
-        return (
-            self._connected
-            and self.ws is not None
-            and not self.ws.closed
-        )
+        return self._connected and self.ws is not None and not self.ws.closed
 
     async def send_heartbeat(self) -> None:
         if not self.ws:
@@ -217,18 +214,18 @@ class DiscordGateway(GatewayConnection, EventHandler):
             await self.disconnect()
 
         elif opcode == Opcode.DISPATCH:
-            if (
-                event_type is not None
-            ):
+            if event_type is not None:
                 await self._handle_event(event_type, payload)
 
     async def _handle_event(self, event_type: str, payload: dict[str, Any]) -> None:
         if event_type == GatewayEvent.MESSAGE_CREATE:
             event = MessageCreated(
-                message_id = MessageId(int(self.helper.as_str(payload, "id"))),
+                message_id=MessageId(int(self.helper.as_str(payload, "id"))),
                 author_id=UserId(int(payload["author"]["id"])),
                 channel_id=ChannelId(int(self.helper.as_str(payload, "channel_id"))),
-                guild_id=GuildId(int(self.helper.as_str(payload, "guild_id"))) if payload.get("guild_id") else None,
+                guild_id=GuildId(int(self.helper.as_str(payload, "guild_id")))
+                if payload.get("guild_id")
+                else None,
                 content=payload.get("content", ""),
             )
             await self.dispatch(event)
@@ -295,7 +292,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
                 },
             },
         }
-        await self.ws.send_json(payload) # pyright: ignore[reportOptionalMemberAccess]
+        await self.ws.send_json(payload)  # pyright: ignore[reportOptionalMemberAccess]
 
     async def _heartbeat_loop(self) -> None:
         while self._should_reconnect:

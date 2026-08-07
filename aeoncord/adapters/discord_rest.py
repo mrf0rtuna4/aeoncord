@@ -57,7 +57,9 @@ class DiscordHTTPClient(HTTPClient):
             await self._handle_response(resp)
             return await resp.json()
 
-    async def post(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    async def post(
+        self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -68,7 +70,9 @@ class DiscordHTTPClient(HTTPClient):
             await self._handle_response(resp)
             return await resp.json()
 
-    async def patch(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    async def patch(
+        self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")
@@ -87,7 +91,9 @@ class DiscordHTTPClient(HTTPClient):
         async with self.session.delete(url, headers=self.headers, **kwargs) as resp:
             await self._handle_response(resp)
 
-    async def put(self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    async def put(
+        self, endpoint: str, data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         if not self.session:
             raise RuntimeError("HTTPClient not initialized. Use async context manager.")

@@ -31,4 +31,3 @@ class Helpers:
             raise TypeError(f"{key} must be str")
 
         return value
-    

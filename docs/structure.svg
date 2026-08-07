@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="728">
+<rect width="100%" height="100%" fill="white"/>
+<text x="16" y="16" font-size="14" font-family="monospace">📁 workspace</text>
+<text x="40" y="40" font-size="14" font-family="monospace">📁 .github</text>
+<text x="64" y="64" font-size="14" font-family="monospace">📁 workflows</text>
+<text x="88" y="88" font-size="14" font-family="monospace">📄 generate-structure.yml</text>
+<text x="40" y="112" font-size="14" font-family="monospace">📁 aeoncord</text>
+<text x="64" y="136" font-size="14" font-family="monospace">📁 adapters</text>
+<text x="88" y="160" font-size="14" font-family="monospace">📄 __init__.py</text>
+<text x="88" y="184" font-size="14" font-family="monospace">📄 discord_gateway.py</text>
+<text x="88" y="208" font-size="14" font-family="monospace">📄 discord_rest.py</text>
+<text x="88" y="232" font-size="14" font-family="monospace">📄 helpers.py</text>
+<text x="88" y="256" font-size="14" font-family="monospace">📄 in_memory.py</text>
+<text x="64" y="280" font-size="14" font-family="monospace">📁 core</text>
+<text x="88" y="304" font-size="14" font-family="monospace">📁 domain</text>
+<text x="112" y="328" font-size="14" font-family="monospace">📄 __init__.py</text>
+<text x="112" y="352" font-size="14" font-family="monospace">📄 exceptions.py</text>
+<text x="112" y="376" font-size="14" font-family="monospace">📄 models.py</text>
+<text x="88" y="400" font-size="14" font-family="monospace">📁 ports</text>
+<text x="112" y="424" font-size="14" font-family="monospace">📄 __init__.py</text>
+<text x="112" y="448" font-size="14" font-family="monospace">📄 ports.py</text>
+<text x="88" y="472" font-size="14" font-family="monospace">📄 __init__.py</text>
+<text x="88" y="496" font-size="14" font-family="monospace">📄 use_cases.py</text>
+<text x="64" y="520" font-size="14" font-family="monospace">📄 __init__.py</text>
+<text x="64" y="544" font-size="14" font-family="monospace">📄 client.py</text>
+<text x="64" y="568" font-size="14" font-family="monospace">📄 events.py</text>
+<text x="40" y="592" font-size="14" font-family="monospace">📄 .gitignore</text>
+<text x="40" y="616" font-size="14" font-family="monospace">📄 pyproject.toml</text>
+<text x="40" y="640" font-size="14" font-family="monospace">📄 README.md</text>
+<text x="40" y="664" font-size="14" font-family="monospace">📄 requirements.txt</text>
+<text x="40" y="688" font-size="14" font-family="monospace">📄 uv.lock</text>
+</svg>

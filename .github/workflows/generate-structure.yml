@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run generate
-        uses: mrf0rtuna4/TreeExporter@v0.1.0
+        uses: mrf0rtuna4/TreeExporter@master
         with:
           format: "svg"
           output: "docs/structure"

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="728">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="776">
 <rect width="100%" height="100%" fill="white"/>
 <text x="16" y="16" font-size="14" font-family="monospace">📁 workspace</text>
 <text x="40" y="40" font-size="14" font-family="monospace">📁 .github</text>
@@ -24,9 +24,11 @@
 <text x="64" y="520" font-size="14" font-family="monospace">📄 __init__.py</text>
 <text x="64" y="544" font-size="14" font-family="monospace">📄 client.py</text>
 <text x="64" y="568" font-size="14" font-family="monospace">📄 events.py</text>
-<text x="40" y="592" font-size="14" font-family="monospace">📄 .gitignore</text>
-<text x="40" y="616" font-size="14" font-family="monospace">📄 pyproject.toml</text>
-<text x="40" y="640" font-size="14" font-family="monospace">📄 README.md</text>
-<text x="40" y="664" font-size="14" font-family="monospace">📄 requirements.txt</text>
-<text x="40" y="688" font-size="14" font-family="monospace">📄 uv.lock</text>
+<text x="40" y="592" font-size="14" font-family="monospace">📁 docs</text>
+<text x="64" y="616" font-size="14" font-family="monospace">📄 structure.svg</text>
+<text x="40" y="640" font-size="14" font-family="monospace">📄 .gitignore</text>
+<text x="40" y="664" font-size="14" font-family="monospace">📄 pyproject.toml</text>
+<text x="40" y="688" font-size="14" font-family="monospace">📄 README.md</text>
+<text x="40" y="712" font-size="14" font-family="monospace">📄 requirements.txt</text>
+<text x="40" y="736" font-size="14" font-family="monospace">📄 uv.lock</text>
 </svg>

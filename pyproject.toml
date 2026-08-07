@@ -8,20 +8,29 @@ version = "0.1.0"
 description = "Elegant Discord API client"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "ARR"}
+license = { text = "ARR" }
+
 authors = [
-    {name = "mrf0rtuna4", email = "contact.mrf0rtuna4@gmail.com"}
+    { name = "mrf0rtuna4", email = "contact.mrf0rtuna4@gmail.com" }
 ]
-keywords = ["discord", "api", "client", "hexagonal", "clean-architecture"]
+
+keywords = [
+    "discord",
+    "api",
+    "client",
+    "async",
+    "hexagonal",
+    "clean-architecture",
+]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: ARR License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -32,17 +41,20 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
-    "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+
+    "ruff>=0.6.0",
+    "mypy>=1.10",
+    "pyright>=1.1.370",
+
+    "pre-commit>=3.7",
 ]
+
 docs = [
-    "sphinx>=7.0.0",
-    "sphinx-rtd-theme>=1.2.0",
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
 ]
 
 [project.urls]
@@ -50,34 +62,120 @@ Homepage = "https://github.com/mrf0rtuna4/aeoncord"
 Repository = "https://github.com/mrf0rtuna4/aeoncord.git"
 "Bug Tracker" = "https://github.com/mrf0rtuna4/aeoncord/issues"
 
+
 [tool.setuptools]
 packages = ["aeoncord"]
 
 [tool.setuptools.package-data]
 aeoncord = ["py.typed"]
 
-[tool.black]
-line-length = 100
-target-version = ["py310"]
-
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-lint.select = [
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = [
     "E",
-    "F",
     "W",
+    "F",
     "I",
     "N",
+    "B",
+    "C4",
+    "SIM",
+    "PTH",
+    "ANN",
+    "ASYNC",
+    "S",
+    "TCH",
+    "PL",
+    "RUF",
 ]
+
+ignore = [
+    "ANN401",
+    "S101",
+    "PLR2004",
+]
+
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["aeoncord"]
 
 [tool.mypy]
 python_version = "3.10"
-warn_return_any = true
+
+strict = true
+
 warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+
+disallow_any_generics = true
+disallow_subclassing_any = true
 disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+check_untyped_defs = true
+
+no_implicit_optional = true
+
+exclude = [
+    "tests/",
+]
+
+[tool.pyright]
+pythonVersion = "3.10"
+
+typeCheckingMode = "strict"
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+reportUnknownMemberType = true
+reportUnknownVariableType = true
+reportUnknownArgumentType = true
+reportUnknownParameterType = true
+
+reportUnusedImport = true
+reportUnusedVariable = true
+
+exclude = [
+    "**/__pycache__",
+    "tests",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
-addopts = "--cov=aeoncord --cov-report=term-plus --cov-report=html"
+
+testpaths = [
+    "tests"
+]
+
+addopts = [
+    "--cov=aeoncord",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-fail-under=90",
+]
+
+filterwarnings = [
+    "error",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.0",
+    "pre-commit>=4.6.1",
+    "pyright>=1.1.411",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.1",
+]

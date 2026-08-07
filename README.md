@@ -73,6 +73,12 @@ pip install -e ".[dev]"
 
 ---
 
+# Structure
+
+![](docs/structure.svg)
+
+---
+
 ## 🛠 Development
 
 Run checks locally:

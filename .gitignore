@@ -133,4 +133,4 @@ dmypy.json
 # Project specific
 .env.local
 tokens.txt
-tests
+run

@@ -21,6 +21,7 @@ jobs:
         with:
           format: "svg"
           output: "docs/structure"
+          path: "./aeoncord"
 
 
       - name: Commit and push

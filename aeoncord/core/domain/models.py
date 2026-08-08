@@ -341,4 +341,3 @@ class UserOnline(DomainEvent):
 class UserOffline(DomainEvent):
     user_id: UserId
     timestamp: datetime
-

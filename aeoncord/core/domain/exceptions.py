@@ -10,7 +10,7 @@ from typing import Any
 
 
 class DomainError(Exception):
-    def __init__(self, message: str, context: dict[str, Any] | None = None):
+    def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
         super().__init__(message)
         self.message = message
         self.context = context or {}
@@ -97,7 +97,9 @@ class MessageAlreadyDeletedError(InvalidOperationError):
 class InvalidMessageContentError(InvalidOperationError):
     """Message content violates validation rules."""
 
-    def __init__(self, reason: str = "Content is invalid", context: dict[str, Any] | None = None):
+    def __init__(
+        self, reason: str = "Content is invalid", context: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(f"Invalid message content: {reason}", context)
 
 

@@ -39,24 +39,6 @@ dependencies = [
     "attrs>=23.0.0",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "pytest-cov>=5.0",
-
-    "ruff>=0.6.0",
-    "mypy>=1.10",
-    "pyright>=1.1.370",
-
-    "pre-commit>=3.7",
-]
-
-docs = [
-    "sphinx>=7.0",
-    "sphinx-rtd-theme>=2.0",
-]
-
 [project.urls]
 Homepage = "https://github.com/mrf0rtuna4/aeoncord"
 Repository = "https://github.com/mrf0rtuna4/aeoncord.git"
@@ -171,6 +153,7 @@ filterwarnings = [
 
 [dependency-groups]
 dev = [
+    "build>=1.5.0",
     "mypy>=2.3.0",
     "pre-commit>=4.6.1",
     "pyright>=1.1.411",
@@ -178,4 +161,5 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.1",
+    "twine>=7.0.0",
 ]

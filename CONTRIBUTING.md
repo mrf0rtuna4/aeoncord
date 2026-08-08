@@ -66,8 +66,6 @@ Before opening a pull request:
 
 Pull requests may be reviewed for correctness, API design, type safety, test coverage, and consistency with the existing architecture.
 
-```
-
 ---
 
 ## PR template

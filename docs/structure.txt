@@ -1,0 +1,20 @@
+aeoncord
++-- adapters
+|   +-- __init__.py
+|   +-- discord_gateway.py
+|   +-- discord_rest.py
+|   +-- helpers.py
+|   \-- in_memory.py
++-- core
+|   +-- domain
+|   |   +-- __init__.py
+|   |   +-- exceptions.py
+|   |   \-- models.py
+|   +-- ports
+|   |   +-- __init__.py
+|   |   \-- ports.py
+|   +-- __init__.py
+|   \-- use_cases.py
++-- __init__.py
++-- client.py
+\-- events.py

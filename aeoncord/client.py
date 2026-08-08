@@ -8,7 +8,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Type
 
-from aeoncord.adapters.discord_gateway import DiscordGateway
+from aeoncord.adapters.gateway import DiscordGateway
 from aeoncord.adapters.discord_rest import DiscordHTTPClient
 from aeoncord.adapters.in_memory import (
     InMemoryChannelRepository,

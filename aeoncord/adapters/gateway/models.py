@@ -46,4 +46,3 @@ class GatewayReaction:
 class GatewayPresenceUpdate:
     user_id: str
     status: str
-    

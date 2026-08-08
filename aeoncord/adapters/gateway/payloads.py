@@ -90,6 +90,7 @@ class PresenceUpdatePayload(TypedDict, total=False):
     user: PresenceUserPayload
     status: str
 
+
 GatewayEventPayload = (
     MessageCreatePayload
     | MessageUpdatePayload

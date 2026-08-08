@@ -5,6 +5,7 @@ Gateway dataclass -> DomainEvent mapper.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from aeoncord.core.domain.models import (
     ChannelId,
@@ -20,14 +21,15 @@ from aeoncord.core.domain.models import (
     UserOffline,
     UserOnline,
 )
-from aeoncord.adapters.gateway.models import (
-    GatewayMessageCreate,
-    GatewayMessageDelete,
-    GatewayMessageUpdate,
-    GatewayPresenceUpdate,
-    GatewayReaction,
-)
 
+if TYPE_CHECKING:
+    from aeoncord.adapters.gateway.models import (
+        GatewayMessageCreate,
+        GatewayMessageDelete,
+        GatewayMessageUpdate,
+        GatewayPresenceUpdate,
+        GatewayReaction,
+    )
 
 class GatewayMapper:
     """
@@ -53,7 +55,9 @@ class GatewayMapper:
 
         return MessageEdited(
             message_id=MessageId(int(payload.id)),
-            editor_id=UserId(int(payload.author_id)) if payload.author_id is not None else UserId(0),
+            editor_id=UserId(int(payload.author_id))
+            if payload.author_id is not None
+            else UserId(0),
             new_content=payload.content or "",
             edited_at=self._parse_timestamp(payload.edited_timestamp),
         )
@@ -92,4 +96,3 @@ class GatewayMapper:
             user_id=user_id,
             timestamp=datetime.now(),
         )
-    

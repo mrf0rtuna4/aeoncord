@@ -6,7 +6,7 @@ Converts raw JSON dictionaries into validated Gateway models.
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from aeoncord.adapters.gateway.models import (
     GatewayMessageCreate,
@@ -16,14 +16,15 @@ from aeoncord.adapters.gateway.models import (
     GatewayReaction,
 )
 
-from aeoncord.adapters.gateway.payloads import (
-    MessageCreatePayload,
-    MessageDeletePayload,
-    MessageUpdatePayload,
-    PresenceUpdatePayload,
-    ReactionAddPayload,
-    ReactionRemovePayload,
-)
+if TYPE_CHECKING:
+    from aeoncord.adapters.gateway.payloads import (
+        MessageCreatePayload,
+        MessageDeletePayload,
+        MessageUpdatePayload,
+        PresenceUpdatePayload,
+        ReactionAddPayload,
+        ReactionRemovePayload,
+    )
 
 
 class GatewayParser:
@@ -36,7 +37,7 @@ class GatewayParser:
         data: dict[str, object],
     ) -> GatewayMessageCreate:
 
-        payload = cast(MessageCreatePayload, data)
+        payload = cast("MessageCreatePayload", data)
 
         author = payload["author"]
 
@@ -48,18 +49,21 @@ class GatewayParser:
             content=payload.get("content", ""),
         )
 
-
     def parse_message_update(
         self,
         data: dict[str, object],
     ) -> GatewayMessageUpdate:
 
-        payload = cast(MessageUpdatePayload, data)
+        payload = cast("MessageUpdatePayload", data)
 
         author = payload.get("author")
+        message_id = payload.get("id")
+
+        if message_id is None:
+            raise ValueError("MESSAGE_UPDATE payload is missing required field 'id'")
 
         return GatewayMessageUpdate(
-            id=payload["id"],
+            id=message_id,
             channel_id=payload.get("channel_id"),
             guild_id=payload.get("guild_id"),
             author_id=author["id"] if author else None,
@@ -67,13 +71,12 @@ class GatewayParser:
             edited_timestamp=payload.get("edited_timestamp"),
         )
 
-
     def parse_message_delete(
         self,
         data: dict[str, object],
     ) -> GatewayMessageDelete:
 
-        payload = cast(MessageDeletePayload, data)
+        payload = cast("MessageDeletePayload", data)
 
         return GatewayMessageDelete(
             id=payload["id"],
@@ -81,27 +84,25 @@ class GatewayParser:
             guild_id=payload.get("guild_id"),
         )
 
-
     def parse_reaction_add(
         self,
         data: dict[str, object],
     ) -> GatewayReaction:
 
-        payload = cast(ReactionAddPayload, data)
+        payload = cast("ReactionAddPayload", data)
 
         return GatewayReaction(
             message_id=payload["message_id"],
             user_id=payload["user_id"],
             emoji=payload["emoji"]["name"],
         )
-
 
     def parse_reaction_remove(
         self,
         data: dict[str, object],
     ) -> GatewayReaction:
 
-        payload = cast(ReactionRemovePayload, data)
+        payload = cast("ReactionRemovePayload", data)
 
         return GatewayReaction(
             message_id=payload["message_id"],
@@ -109,18 +110,19 @@ class GatewayParser:
             emoji=payload["emoji"]["name"],
         )
 
-
     def parse_presence_update(
         self,
         data: dict[str, object],
     ) -> GatewayPresenceUpdate:
 
-        payload = cast(PresenceUpdatePayload, data)
+        payload = cast("PresenceUpdatePayload", data)
 
-        user = payload["user"]
+        user = payload.get("user")
+
+        if user is None:
+            raise ValueError("PRESENCE_UPDATE payload is missing required field 'user'")
 
         return GatewayPresenceUpdate(
             user_id=user["id"],
             status=payload.get("status", "offline"),
         )
-    

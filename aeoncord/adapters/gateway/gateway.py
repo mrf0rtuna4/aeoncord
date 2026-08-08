@@ -8,15 +8,14 @@ import asyncio
 import json
 import zlib
 from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
 import aiohttp
 
-from aeoncord.core.domain.models import DomainEvent
-from aeoncord.core.ports import EventHandler, GatewayConnection
-
 from aeoncord.adapters.gateway.mapper import GatewayMapper
 from aeoncord.adapters.gateway.parser import GatewayParser
-
+from aeoncord.core.domain.models import DomainEvent
+from aeoncord.core.ports import EventHandler, GatewayConnection
 
 EventCallback = Callable[[DomainEvent], Awaitable[None]]
 
@@ -103,16 +102,13 @@ class DiscordGateway(GatewayConnection, EventHandler):
     - passing event payloads through parser and mapper.
     """
 
-    GATEWAY_URL = (
-        "wss://gateway.discord.gg/"
-        "?v=10&encoding=json&compression=zlib-stream"
-    )
+    GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json&compression=zlib-stream"
 
     def __init__(self, token: str) -> None:
         self.token = token
 
         self._session: aiohttp.ClientSession | None = None
-        self.ws: aiohttp.ClientWebSocketResponse | None = None
+        self.ws: aiohttp.ClientWebSocketResponse[bool] | None = None
 
         self._connected = False
         self._should_reconnect = True
@@ -132,13 +128,10 @@ class DiscordGateway(GatewayConnection, EventHandler):
         self._mapper = GatewayMapper()
 
     async def connect(self) -> None:
-        """Open Gateway WebSocket connection."""
-
         if self._connected:
             raise RuntimeError("Already connected")
 
         self._should_reconnect = True
-
         self._session = aiohttp.ClientSession()
 
         try:
@@ -149,10 +142,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
             raise
 
         self._connected = True
-
-        self._receive_task = asyncio.create_task(
-            self._receive_loop()
-        )
+        self._receive_task = asyncio.create_task(self._receive_loop())
 
     async def disconnect(self) -> None:
         """Close Gateway WebSocket connection."""
@@ -176,11 +166,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
     async def is_connected(self) -> bool:
         """Return whether the Gateway connection is active."""
 
-        return (
-            self._connected
-            and self.ws is not None
-            and not self.ws.closed
-        )
+        return self._connected and self.ws is not None and not self.ws.closed
 
     async def send_heartbeat(self) -> None:
         """Send Gateway heartbeat."""
@@ -231,26 +217,24 @@ class DiscordGateway(GatewayConnection, EventHandler):
                 msg = await self.ws.receive()
 
                 if msg.type == aiohttp.WSMsgType.TEXT:
-                    data = json.loads(msg.data)
+                    raw = json.loads(msg.data)
 
-                    if isinstance(data, dict):
+                    if isinstance(raw, dict):
+                        data = cast("dict[str, Any]", raw)
                         await self._handle_payload(data)
 
                 elif msg.type == aiohttp.WSMsgType.BINARY:
                     decompressed = self._decompress_buffer.decompress(msg.data)
 
                     if decompressed:
-                        data = json.loads(
-                            decompressed.decode("utf-8")
-                        )
+                        raw = json.loads(decompressed.decode("utf-8"))
 
-                        if isinstance(data, dict):
+                        if isinstance(raw, dict):
+                            data = cast("dict[str, Any]", raw)
                             await self._handle_payload(data)
 
                 elif msg.type == aiohttp.WSMsgType.ERROR:
-                    print(
-                        f"WebSocket error: {self.ws.exception()}"
-                    )
+                    print(f"WebSocket error: {self.ws.exception()}")
                     break
 
                 elif msg.type == aiohttp.WSMsgType.CLOSED:
@@ -266,7 +250,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
 
     async def _handle_payload(
         self,
-        data: dict[str, object],
+        data: dict[str, Any],
     ) -> None:
         """
         Handle a Discord Gateway envelope.
@@ -304,11 +288,13 @@ class DiscordGateway(GatewayConnection, EventHandler):
         if not isinstance(payload, dict):
             return
 
+        payload = cast("dict[str, Any]", payload)
+
         await self._handle_event(event_type, payload)
 
     async def _handle_hello(
         self,
-        data: dict[str, object],
+        data: dict[str, Any],
     ) -> None:
         """Handle Gateway HELLO event."""
 
@@ -317,12 +303,12 @@ class DiscordGateway(GatewayConnection, EventHandler):
         if not isinstance(payload, dict):
             raise ValueError("HELLO payload must be an object")
 
+        payload = cast("dict[str, Any]", payload)
+
         heartbeat_interval = payload.get("heartbeat_interval")
 
         if not isinstance(heartbeat_interval, int):
-            raise ValueError(
-                "HELLO payload is missing heartbeat_interval"
-            )
+            raise ValueError("HELLO payload is missing heartbeat_interval")
 
         self._heartbeat_interval = heartbeat_interval
 
@@ -331,9 +317,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
         if self._heartbeat_task is not None:
             self._heartbeat_task.cancel()
 
-        self._heartbeat_task = asyncio.create_task(
-            self._heartbeat_loop()
-        )
+        self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
 
     async def _handle_event(
         self,
@@ -346,39 +330,27 @@ class DiscordGateway(GatewayConnection, EventHandler):
 
         if event_type == GatewayEvent.MESSAGE_CREATE:
             gateway_event = self._parser.parse_message_create(payload)
-            domain_event = self._mapper.map_message_create(
-                gateway_event
-            )
+            domain_event = self._mapper.map_message_create(gateway_event)
 
         elif event_type == GatewayEvent.MESSAGE_UPDATE:
             gateway_event = self._parser.parse_message_update(payload)
-            domain_event = self._mapper.map_message_update(
-                gateway_event
-            )
+            domain_event = self._mapper.map_message_update(gateway_event)
 
         elif event_type == GatewayEvent.MESSAGE_DELETE:
             gateway_event = self._parser.parse_message_delete(payload)
-            domain_event = self._mapper.map_message_delete(
-                gateway_event
-            )
+            domain_event = self._mapper.map_message_delete(gateway_event)
 
         elif event_type == GatewayEvent.MESSAGE_REACTION_ADD:
             gateway_event = self._parser.parse_reaction_add(payload)
-            domain_event = self._mapper.map_reaction_added(
-                gateway_event
-            )
+            domain_event = self._mapper.map_reaction_added(gateway_event)
 
         elif event_type == GatewayEvent.MESSAGE_REACTION_REMOVE:
             gateway_event = self._parser.parse_reaction_remove(payload)
-            domain_event = self._mapper.map_reaction_removed(
-                gateway_event
-            )
+            domain_event = self._mapper.map_reaction_removed(gateway_event)
 
         elif event_type == GatewayEvent.PRESENCE_UPDATE:
             gateway_event = self._parser.parse_presence_update(payload)
-            domain_event = self._mapper.map_presence_update(
-                gateway_event
-            )
+            domain_event = self._mapper.map_presence_update(gateway_event)
 
         else:
             return
@@ -389,9 +361,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
         """Send Gateway IDENTIFY payload."""
 
         if self.ws is None or self.ws.closed:
-            raise RuntimeError(
-                "Cannot identify without an active Gateway connection"
-            )
+            raise RuntimeError("Cannot identify without an active Gateway connection")
 
         payload = {
             "op": Opcode.IDENTIFY,
@@ -413,9 +383,7 @@ class DiscordGateway(GatewayConnection, EventHandler):
 
         while self._should_reconnect:
             try:
-                await asyncio.sleep(
-                    self._heartbeat_interval / 1000
-                )
+                await asyncio.sleep(self._heartbeat_interval / 1000)
 
                 await self.send_heartbeat()
 

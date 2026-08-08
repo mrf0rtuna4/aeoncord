@@ -125,19 +125,19 @@ class EventBus(ABC):
 
 class Logger(ABC):
     @abstractmethod
-    def debug(self, message: str, **kwargs: Any) -> None:
+    def debug(self, message: str, **kwargs: object) -> None:
         pass
 
     @abstractmethod
-    def info(self, message: str, **kwargs: Any) -> None:
+    def info(self, message: str, **kwargs: object) -> None:
         pass
 
     @abstractmethod
-    def warning(self, message: str, **kwargs: Any) -> None:
+    def warning(self, message: str, **kwargs: object) -> None:
         pass
 
     @abstractmethod
-    def error(self, message: str, **kwargs: Any) -> None:
+    def error(self, message: str, **kwargs: object) -> None:
         pass
 
 
@@ -187,31 +187,37 @@ class HTTPClient(ABC):
     """
 
     @abstractmethod
-    async def get(self, endpoint: str, **kwargs: Any) -> dict | list:
+    async def get(self, endpoint: str, **kwargs: object) -> dict[str, object] | list[object]:
         pass
 
     @abstractmethod
-    async def post(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def post(
+        self, endpoint: str, data: dict[str, object] | None = None, **kwargs: object
+    ) -> dict[str, object]:
         pass
 
     @abstractmethod
-    async def patch(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def patch(
+        self, endpoint: str, data: dict[str, object] | None = None, **kwargs: object
+    ) -> dict[str, object]:
         pass
 
     @abstractmethod
-    async def delete(self, endpoint: str, **kwargs: Any) -> None:
+    async def delete(self, endpoint: str, **kwargs: object) -> None:
         pass
 
     @abstractmethod
-    async def put(self, endpoint: str, data: dict | None = None, **kwargs: Any) -> dict:
+    async def put(
+        self, endpoint: str, data: dict[str, object] | None = None, **kwargs: object
+    ) -> dict[str, object]:
         pass
 
 
 class EntityMapper(ABC):
     @abstractmethod
-    def to_domain(self, data: dict) -> Any:
+    def to_domain(self, data: dict[str, object]) -> Any:
         pass
 
     @abstractmethod
-    def from_domain(self, entity: Any) -> dict:
+    def from_domain(self, entity: Any) -> dict[str, object]:
         pass

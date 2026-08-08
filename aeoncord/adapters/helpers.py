@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class Helpers:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def as_str(

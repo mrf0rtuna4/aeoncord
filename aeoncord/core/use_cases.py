@@ -12,7 +12,6 @@ from typing import Optional
 
 from aeoncord.core.domain.exceptions import (
     EmptyMessageError,
-    InvalidMessageContentError,
     InvalidMessageLengthError,
     MessageAlreadyDeletedError,
     MessageNotFoundError,
@@ -29,9 +28,9 @@ from aeoncord.core.domain.models import (
     ReactionAdded,
     ReactionRemoved,
     UserId,
+    MessageType
 )
 from aeoncord.core.ports import EventBus, Logger, MessageRepository
-
 
 class SendMessageUseCase:
     """
@@ -48,7 +47,7 @@ class SendMessageUseCase:
         message_repo: MessageRepository,
         event_bus: EventBus,
         logger: Logger,
-    ):
+    ) -> None:
         self.message_repo = message_repo
         self.event_bus = event_bus
         self.logger = logger
@@ -76,9 +75,6 @@ class SendMessageUseCase:
             InvalidMessageContentError: Content validation failed
             EmptyMessageError: Message has no content
         """
-        if not isinstance(content, str):
-            raise InvalidMessageContentError("Content must be a string", {"content": content})
-
         if len(content) > 2000:
             raise InvalidMessageLengthError(
                 f"Content exceeds 2000 character limit ({len(content)})", {"length": len(content)}
@@ -92,13 +88,13 @@ class SendMessageUseCase:
             channel_id=channel_id,
             guild_id=guild_id,
             author_id=author_id,
-            author=None,
+            author=None, # pyright: ignore[reportArgumentType]
             content=content,
             created_at=datetime.now(),
             edited_at=None,
             is_pinned=False,
             is_tts=False,
-            message_type="default",
+            message_type=MessageType.DEFAULT,
         )
 
         await self.message_repo.save(message)
@@ -130,7 +126,7 @@ class EditMessageUseCase:
         message_repo: MessageRepository,
         event_bus: EventBus,
         logger: Logger,
-    ):
+    ) -> None:
         self.message_repo = message_repo
         self.event_bus = event_bus
         self.logger = logger
@@ -164,9 +160,6 @@ class EditMessageUseCase:
                 f"User {editor_id} cannot edit this message",
                 {"message_id": str(message_id), "editor_id": str(editor_id)},
             )
-
-        if not isinstance(new_content, str) or not new_content.strip():
-            raise InvalidMessageContentError("New content must be non-empty string")
 
         if len(new_content) > 2000:
             raise InvalidMessageLengthError("Content exceeds 2000 characters")
@@ -204,7 +197,7 @@ class DeleteMessageUseCase:
         message_repo: MessageRepository,
         event_bus: EventBus,
         logger: Logger,
-    ):
+    ) -> None:
         self.message_repo = message_repo
         self.event_bus = event_bus
         self.logger = logger
@@ -266,7 +259,7 @@ class AddReactionUseCase:
         message_repo: MessageRepository,
         event_bus: EventBus,
         logger: Logger,
-    ):
+    ) -> None:
         self.message_repo = message_repo
         self.event_bus = event_bus
         self.logger = logger

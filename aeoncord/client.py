@@ -104,7 +104,7 @@ class DiscordClient:
             self._logger,
         )
 
-        self._event_handlers: dict[Type, list[Callable]] = {}
+        self._event_handlers: dict[Type[object], list[Callable[..., Any]]] = {}
 
     async def connect(self) -> None:
         try:
@@ -133,7 +133,7 @@ class DiscordClient:
             return False
         return await self._gateway.is_connected()
 
-    def on(self, event_type: Type[Any]) -> Callable:
+    def on(self, event_type: Type[Any]) -> Callable[..., Any]:
 
         def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             if event_type not in self._event_handlers:
@@ -143,7 +143,7 @@ class DiscordClient:
 
         return decorator
 
-    async def _dispatch_event(self, event: Any) -> None:
+    async def _dispatch_event(self, event: object) -> None:
         handlers = self._event_handlers.get(type(event), [])
 
         for handler in handlers:

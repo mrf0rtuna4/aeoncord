@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 
@@ -33,7 +33,7 @@ class DiscordHTTPClient(HTTPClient):
 
     def __init__(self, token: str):
         self.token = token
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
         self.headers = {
             "Authorization": f"Bot {token}",
             "Content-Type": "application/json",
@@ -118,11 +118,11 @@ class DiscordHTTPClient(HTTPClient):
 
 
 class MessageMapper(EntityMapper):
-    async def to_domain(self, user_repo: UserRepository, data: dict[str, Any]) -> Message:
+    async def to_domain(self, user_repo: UserRepository, data: dict[str, Any]):
         author_data = data.get("author", {})
         author = await user_repo.get_by_id(UserId(int(author_data["id"])))
 
-        embeds = []
+        embeds: list[Any] = []
         for embed_data in data.get("embeds", []):
             embeds.append(
                 Embed(
@@ -142,11 +142,14 @@ class MessageMapper(EntityMapper):
         mentions = [UserId(int(m["id"])) for m in data.get("mentions", [])]
         mention_roles = [RoleId(int(r)) for r in data.get("mention_roles", [])]
 
-        reactions = {}
+        reactions: dict[str, Any] = {}
         for reaction in data.get("reactions", []):
             emoji = reaction.get("emoji", {}).get("name", "unknown")
             count = reaction.get("count", 0)
             reactions[emoji] = count
+
+        if author is None:
+            return
 
         return Message(
             id=MessageId(int(data["id"])),
@@ -198,7 +201,7 @@ class DiscordRESTMessageRepository(MessageRepository):
         self.http = http_client
         self.mapper = mapper
 
-    async def get_by_id(self, message_id: MessageId) -> Optional[Message]:
+    async def get_by_id(self, message_id: MessageId) -> Message | None:
         try:
             return None
         except ValueError:
@@ -208,15 +211,15 @@ class DiscordRESTMessageRepository(MessageRepository):
         self,
         channel_id: ChannelId,
         limit: int = 100,
-        before: Optional[MessageId] = None,
+        before: MessageId | None = None,
     ) -> list[Message]:
         endpoint = f"/channels/{channel_id.value}/messages"
-        params = {"limit": min(limit, 100)}
+        params: dict[str, int] = {"limit": min(limit, 100)}
 
         if before:
             params["before"] = str(before.value)
 
-        data = await self.http.get(endpoint, params=params)
+        data: dict[str, Any] | list[Any] = await self.http.get(endpoint, params=params)
         return [await self.mapper.to_domain(data) for data in data]
 
     async def save(self, message: Message) -> None:

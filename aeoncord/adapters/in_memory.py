@@ -31,6 +31,23 @@ from aeoncord.core.ports import (
 )
 
 
+class SimpleLogger(Logger):
+    def __init__(self, name: str = "aeoncord") -> None:
+        self.logger = logging.getLogger(name)
+
+    def debug(self, message: str, **kwargs: object) -> None:
+        self.logger.debug(message, extra=kwargs)
+
+    def info(self, message: str, **kwargs: object) -> None:
+        self.logger.info(message, extra=kwargs)
+
+    def warning(self, message: str, **kwargs: object) -> None:
+        self.logger.warning(message, extra=kwargs)
+
+    def error(self, message: str, **kwargs: object) -> None:
+        self.logger.error(message, extra=kwargs)
+
+
 class InMemoryMessageRepository(MessageRepository):
     def __init__(self) -> None:
         self._messages: dict[MessageId, Message] = {}
@@ -66,7 +83,7 @@ class InMemoryUserRepository(UserRepository):
         self._users: dict[UserId, User] = {}
         self._current_user: User | None = None
 
-    async def get_by_id(self, user_id: UserId) -> User  | None:
+    async def get_by_id(self, user_id: UserId) -> User | None:
         return self._users.get(user_id)
 
     async def get_current_user(self) -> User:
@@ -127,11 +144,13 @@ class InMemoryEventBus(EventBus):
     """
     B U S
     """
+
     def __init__(self) -> None:
         self._subscribers: dict[
             type[DomainEvent],
             list[Callable[[DomainEvent], Awaitable[None]]],
         ] = {}
+        self._logger: SimpleLogger = SimpleLogger()
 
     async def subscribe(
         self,
@@ -153,21 +172,4 @@ class InMemoryEventBus(EventBus):
             try:
                 await handler(event)
             except Exception as exc:
-                print(f"Error in event handler: {exc}")
-
-
-class SimpleLogger(Logger):
-    def __init__(self, name: str = "aeoncord") -> None:
-        self.logger = logging.getLogger(name)
-
-    def debug(self, message: str, **kwargs: object) -> None:
-        self.logger.debug(message, extra=kwargs)
-
-    def info(self, message: str, **kwargs: object) -> None:
-        self.logger.info(message, extra=kwargs)
-
-    def warning(self, message: str, **kwargs: object) -> None:
-        self.logger.warning(message, extra=kwargs)
-
-    def error(self, message: str, **kwargs: object) -> None:
-        self.logger.error(message, extra=kwargs)
+                self._logger.error(f"Error in event handler: {exc}")

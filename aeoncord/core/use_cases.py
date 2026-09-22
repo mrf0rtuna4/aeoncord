@@ -25,12 +25,13 @@ from aeoncord.core.domain.models import (
     MessageDeleted,
     MessageEdited,
     MessageId,
+    MessageType,
     ReactionAdded,
     ReactionRemoved,
     UserId,
-    MessageType
 )
 from aeoncord.core.ports import EventBus, Logger, MessageRepository
+
 
 class SendMessageUseCase:
     """
@@ -88,7 +89,7 @@ class SendMessageUseCase:
             channel_id=channel_id,
             guild_id=guild_id,
             author_id=author_id,
-            author=None, # pyright: ignore[reportArgumentType]
+            author=None,  # pyright: ignore[reportArgumentType]
             content=content,
             created_at=datetime.now(),
             edited_at=None,

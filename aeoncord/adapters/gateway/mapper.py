@@ -31,6 +31,7 @@ if TYPE_CHECKING:
         GatewayReaction,
     )
 
+
 class GatewayMapper:
     """
     Converts validated Gateway models into domain events.

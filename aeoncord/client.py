@@ -8,8 +8,8 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Type
 
-from aeoncord.adapters.gateway import DiscordGateway
 from aeoncord.adapters.discord_rest import DiscordHTTPClient
+from aeoncord.adapters.gateway import DiscordGateway
 from aeoncord.adapters.in_memory import (
     InMemoryChannelRepository,
     InMemoryEventBus,
@@ -45,7 +45,7 @@ from aeoncord.events import (
 @dataclass
 class ClientConfig:
     token: str
-    intents: int = 513
+    intents: int = 33281
     auto_sync_commands: bool = True
     debug: bool = False
 
@@ -55,7 +55,7 @@ class DiscordClient:
         self,
         token: str,
         *,
-        intents: int = 513,
+        intents: int = 33281,
         auto_sync_commands: bool = True,
         debug: bool = False,
     ):
@@ -81,34 +81,34 @@ class DiscordClient:
         self._send_message = SendMessageUseCase(
             self._message_repo,
             self._event_bus,
-            self._logger,
+            self.logger,
         )
         self._edit_message = EditMessageUseCase(
             self._message_repo,
             self._event_bus,
-            self._logger,
+            self.logger,
         )
         self._delete_message = DeleteMessageUseCase(
             self._message_repo,
             self._event_bus,
-            self._logger,
+            self.logger,
         )
         self._add_reaction = AddReactionUseCase(
             self._message_repo,
             self._event_bus,
-            self._logger,
+            self.logger,
         )
         self._remove_reaction = RemoveReactionUseCase(
             self._message_repo,
             self._event_bus,
-            self._logger,
+            self.logger,
         )
 
         self._event_handlers: dict[Type[object], list[Callable[..., Any]]] = {}
 
     async def connect(self) -> None:
         try:
-            self._logger.info("Connecting to Discord...")
+            self.logger.info("Connecting to Discord...")
 
             self._http = DiscordHTTPClient(self.config.token)
 
@@ -117,10 +117,10 @@ class DiscordClient:
 
             await self._register_gateway_handlers()
 
-            self._logger.info("Connected to Discord!")
+            self.logger.info("Connected to Discord!")
 
         except Exception as e:
-            self._logger.error(f"Connection failed: {e}")
+            self.logger.error(f"Connection failed: {e}")
             raise
 
     async def disconnect(self) -> None:
@@ -153,7 +153,7 @@ class DiscordClient:
                 else:
                     handler(event)
             except Exception as e:
-                self._logger.error(f"Error in event handler: {e}")
+                self.logger.error(f"Error in event handler: {e}")
 
     async def _register_gateway_handlers(self) -> None:
         if not self._gateway:
@@ -168,6 +168,14 @@ class DiscordClient:
         )
 
         async def handle_message_created(event: MessageCreated) -> None:
+            self.logger.info(
+                f"RAW MESSAGE CREATED: "
+                f"id={event.message_id}, "
+                f"channel={event.channel_id}, "
+                f"guild={event.guild_id}, "
+                f"content={event.content!r}"
+            )
+
             app_event = MessageCreateEvent(
                 id=event.message_id,
                 author=None,
@@ -179,6 +187,7 @@ class DiscordClient:
                 attachments=[],
                 _message=None,
             )
+
             await self._dispatch_event(app_event)
 
         async def handle_message_edited(event: MessageEdited) -> None:
